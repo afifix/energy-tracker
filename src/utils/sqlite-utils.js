@@ -7,21 +7,14 @@ import { Capacitor } from "@capacitor/core";
 import { CapacitorSQLite, SQLiteConnection } from "@capacitor-community/sqlite";
 
 const LOG = "[SQLite]";
+let capSQLite;
+let isWeb;
 
-const init = async ({ app, db }) => {
-  const capSQLite = new SQLiteConnection(CapacitorSQLite);
+const init = async ({ db } = {}) => {
+  capSQLite = new SQLiteConnection(CapacitorSQLite);
 
-  if (!app) return;
   log.debug(LOG, "init");
-  const isWeb = Capacitor.getPlatform() === "web";
-
-  if (!app.config.globalProperties.$SQLite) {
-    log.debug(LOG, "global properties");
-    app.config.globalProperties.$SQLite = {
-      capSQLite,
-      isWeb,
-    };
-  }
+  isWeb = Capacitor.getPlatform() === "web";
 
   log.debug(LOG, "polyfills");
   await applyPolyfills();
@@ -38,6 +31,7 @@ const init = async ({ app, db }) => {
     await capSQLite.echo("hello from SQLite");
   }
 
+  if (!db) return;
   const { name, schema, version, getUpgrade } = db;
   const { result: dbExist } = await capSQLite.isDatabase(name);
   log.debug(LOG, "init db", { name, exist: dbExist });

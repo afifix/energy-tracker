@@ -3,6 +3,8 @@ import log from "loglevel";
 import { ref, onMounted } from "vue";
 import { IonPage, IonRow, IonCol, IonSpinner, IonGrid } from "@ionic/vue";
 import { pause } from "../utils/helper";
+import { init } from "../utils/sqlite-utils";
+import db from "../utils/db";
 
 const name = "splash-screen";
 const LOG = `[component|${name}]`;
@@ -21,10 +23,12 @@ export default {
     log.debug(LOG, "setup");
 
     const running = ref(true);
-    const message = ref("initialisation app");
+    const message = ref("");
 
     onMounted(async () => {
-      await pause(3000);
+      message.value = "initialisation bd...";
+      await init({ db });
+      await pause(2000);
       running.value = false;
       await pause(1000);
       context.emit("fadeout");
