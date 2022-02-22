@@ -1,31 +1,45 @@
 <script>
 import log from "loglevel";
-import { defineComponent } from "vue";
+import { ref } from "vue";
 
 import { IonApp, IonRouterOutlet, IonSplitPane } from "@ionic/vue";
 import Menu from "./components/Menu.vue";
+import SplashScreen from "./views/SplashScreen.vue";
 
 const name = "App";
 const LOG = `[component|${name}]`;
 
-export default defineComponent({
+export default {
   name,
   components: {
     IonApp,
     IonRouterOutlet,
     IonSplitPane,
     Menu,
+    SplashScreen,
   },
   setup() {
     log.debug(LOG, "setup");
-    return {};
+
+    const showSplashScreen = ref(true);
+
+    const onSplashScreenFadeout = () => {
+      log.debug("splash-screen fadeout");
+      showSplashScreen.value = false;
+    };
+
+    return {
+      showSplashScreen,
+      onSplashScreenFadeout,
+    };
   },
-});
+};
 </script>
 
 <template>
   <ion-app>
-    <ion-split-pane content-id="main-content">
+    <SplashScreen v-if="showSplashScreen" @fadeout="onSplashScreenFadeout" />
+    <ion-split-pane v-else content-id="main-content">
       <Menu />
       <ion-router-outlet id="main-content" />
     </ion-split-pane>
