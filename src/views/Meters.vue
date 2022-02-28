@@ -9,13 +9,31 @@ import {
   IonToolbar,
   IonMenuButton,
   IonButtons,
+  IonFooter,
+  IonRefresher,
+  IonRefresherContent,
+  IonList,
+  IonFab,
+  IonFabButton,
+  IonIcon,
+  IonItem,
+  IonLabel,
+  onIonViewDidEnter,
+  onIonViewWillLeave,
 } from "@ionic/vue";
-import { defineComponent } from "vue";
+
+import { add as addIcon } from "ionicons/icons";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { Retrier } from "@jsier/retrier";
+
+import useSQLite from "../composables/useSQLite";
+import repo from "../db/repo/meters";
 
 const name = "Meters";
 const LOG = `[component|${name}]`;
 
-export default defineComponent({
+export default {
   name,
   components: {
     IonContent,
@@ -25,11 +43,77 @@ export default defineComponent({
     IonToolbar,
     IonMenuButton,
     IonButtons,
+    IonFooter,
+    IonRefresher,
+    IonRefresherContent,
+    IonList,
+    IonFab,
+    IonFabButton,
+    IonIcon,
+    IonItem,
+    IonLabel,
   },
   setup() {
     log.debug(LOG, "setup");
+
+    const { ready, query } = useSQLite();
+    const loading = ref(false);
+    const router = useRouter();
+    const items = ref([]);
+
+    onIonViewDidEnter(async () => {
+      log.debug(LOG, "view did enter");
+
+      const options = {
+        limit: 5,
+        firstAttemptDelay: 500,
+        delay: 250,
+        keepRetryingIf: () => !ready.value,
+        stop,
+      };
+
+      const retrier = new Retrier(options);
+      retrier.resolve(load).then(
+        () => log.debug(LOG, "data loaded"),
+        () => log.debug(LOG, "load data failed")
+      );
+    });
+
+    onIonViewWillLeave(() => {
+      log.debug(LOG, "view will leave");
+    });
+
+    const load = async () => {
+      if (!ready.value) return Promise.reject(new Error("fail to load data"));
+
+      const data = await query(repo.getAll());
+      items.value = data;
+    };
+
+    const refresh = () => {
+      log.debug(LOG, "refresh");
+    };
+
+    const toMeterPage = () => {
+      log.debug(LOG, "to meter page");
+      router.push("/meters/add");
+    };
+
+    const openMeter = (item) => {
+      log.debug(LOG, { item });
+    };
+
+    return {
+      ready,
+      refresh,
+      toMeterPage,
+      openMeter,
+      addIcon,
+      loading,
+      items,
+    };
   },
-});
+};
 </script>
 
 <template>
@@ -42,8 +126,28 @@ export default defineComponent({
         <ion-title>Meters</ion-title>
       </ion-toolbar>
     </ion-header>
-    <ion-content :fullscreen="true">
-      <span></span>
+
+    <ion-content fullscreens>
+      <ion-refresher slot="fixed" :hidden="!loading" @ionRefresh="refresh">
+        <ion-refresher-content></ion-refresher-content>
+      </ion-refresher>
+      <ion-list lines="full">
+        <ion-item
+          button
+          @click="openMeter(item)"
+          v-for="item in items"
+          :key="item.id"
+        >
+          <ion-label>{{ item.name }}</ion-label>
+        </ion-item>
+      </ion-list>
+      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button :disabled="!ready" color="primary" @click="toMeterPage">
+          <ion-icon :icon="addIcon" />
+        </ion-fab-button>
+      </ion-fab>
     </ion-content>
+
+    <ion-footer></ion-footer>
   </ion-page>
 </template>

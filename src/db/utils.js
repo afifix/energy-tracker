@@ -92,4 +92,4 @@ const init = async ({ db } = {}) => {
   log.debug(LOG, "done");
 };
 
-export { init };
+export { init, capSQLite, isWeb };

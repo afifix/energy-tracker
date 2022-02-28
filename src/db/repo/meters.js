@@ -1,0 +1,34 @@
+const statement_get_all = `
+SELECT id
+  , name
+  , no
+  , unit
+  , start_value startValue
+  , description
+  , user
+  , last_modified modified
+FROM meters;
+`;
+
+const statement_delete_by_id = `
+DELETE FROM meters WHERE id = ?;
+`;
+
+const statement_insert = `
+INSERT INTO meters (name, no, unit, start_value, description, user)
+VALUES (?, ?, ?, ?, ?, ?);
+`;
+
+export default {
+  getAll: () => ({
+    statement: statement_get_all,
+  }),
+  add: ({ name, no, unit, startValue, description, user = "app" }) => ({
+    statement: statement_insert,
+    values: [name, no, unit, startValue, description, user],
+  }),
+  deleteById: ({ id }) => ({
+    statement: statement_delete_by_id,
+    values: [id],
+  }),
+};

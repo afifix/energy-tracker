@@ -1,9 +1,21 @@
 const schema = `
+CREATE TABLE IF NOT EXISTS groups(
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+	last_modified	INTEGER DEFAULT (strftime('%s', 'now'))
+);
+
 CREATE TABLE IF NOT EXISTS meters(
   id INTEGER PRIMARY KEY,
-	name TEXT NOT NULL,
-	user TEXT,
-	last_modified	INTEGER DEFAULT (strftime('%s', 'now'))
+  name TEXT NOT NULL,
+  no TEXT,
+  unit TEXT,
+  cost REAL,
+  start_value REAL,
+  description TEXT,
+  user TEXT,
+  group_id INTEGER,
+  last_modified	INTEGER DEFAULT (strftime('%s', 'now'))
 );
 `;
 
@@ -29,8 +41,8 @@ const getUpgrade = ({ fromVersion, toVersion }) => {
 };
 
 export default {
-  name: "et",
-  version: 0,
+  name: "db",
+  version: 2,
   schema,
   getUpgrade,
 };

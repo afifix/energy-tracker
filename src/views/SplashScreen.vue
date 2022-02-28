@@ -3,8 +3,8 @@ import log from "loglevel";
 import { ref, onMounted } from "vue";
 import { IonPage, IonRow, IonCol, IonSpinner, IonGrid } from "@ionic/vue";
 import { pause } from "../utils/helper";
-import { init } from "../utils/sqlite-utils";
-import db from "../utils/db";
+import { init } from "../db/utils";
+import db from "../db";
 
 const name = "splash-screen";
 const LOG = `[component|${name}]`;

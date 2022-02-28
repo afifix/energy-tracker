@@ -24,7 +24,6 @@ export default {
     const showSplashScreen = ref(true);
 
     const onSplashScreenFadeout = () => {
-      log.debug("splash-screen fadeout");
       showSplashScreen.value = false;
     };
 

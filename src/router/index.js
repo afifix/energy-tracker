@@ -10,6 +10,10 @@ const routes = [
     component: () => import("../views/Meters.vue"),
   },
   {
+    path: "/meters/add",
+    component: () => import("../views/AddMeter.vue"),
+  },
+  {
     path: "/usage",
     component: () => import("../views/Usage.vue"),
   },
