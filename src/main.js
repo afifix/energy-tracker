@@ -25,6 +25,10 @@ import "@ionic/vue/css/display.css";
 /* Theme variables */
 import "./theme/variables.css";
 
+// i18n
+import { createI18n } from "vue-i18n";
+import messages from "./locales";
+
 const LOG = "[main]";
 log.disableAll();
 if (process.env.NODE_ENV === "development") {
@@ -37,7 +41,17 @@ const app = createApp(App).use(IonicVue).use(router);
 
 router.isReady().then(() => {
   log.debug(LOG, "router ready");
-  app.mount("#app");
+  app
+    .use(
+      createI18n({
+        legacy: false,
+        locale: "fr",
+        messages,
+      })
+    )
+    .mount("#app");
+
+  log.debug(messages);
 });
 
 // # move to javascript

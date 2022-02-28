@@ -18,6 +18,7 @@ import {
 
 import { useRouter } from "vue-router";
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import repo from "../db/repo/meters";
 
@@ -46,6 +47,7 @@ export default {
   setup() {
     log.debug(LOG, "setup");
 
+    const { t } = useI18n();
     const router = useRouter();
     const { ready, run } = useSQLite();
 
@@ -77,6 +79,7 @@ export default {
     };
 
     return {
+      t,
       ready,
       name,
       no,
@@ -96,7 +99,7 @@ export default {
         <ion-buttons slot="start">
           <ion-back-button default-href="/meters" />
         </ion-buttons>
-        <ion-title>Meter</ion-title>
+        <ion-title>{{ t("AddMeter.page-title") }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
@@ -124,9 +127,9 @@ export default {
             <ion-input required v-model="description"></ion-input>
           </ion-item>
           <section class="mt">
-            <ion-button :disabled="!ready" expand="block" @click="saveItem"
-              >Save</ion-button
-            >
+            <ion-button :disabled="!ready" expand="block" @click="saveItem">
+              Save
+            </ion-button>
           </section>
         </ion-list>
       </form>
