@@ -47,7 +47,7 @@ export default {
   setup() {
     log.debug(LOG, "setup");
 
-    const { t } = useI18n();
+    useI18n();
     const router = useRouter();
     const { ready, run } = useSQLite();
 
@@ -79,7 +79,6 @@ export default {
     };
 
     return {
-      t,
       ready,
       name,
       no,
@@ -99,7 +98,7 @@ export default {
         <ion-buttons slot="start">
           <ion-back-button default-href="/meters" />
         </ion-buttons>
-        <ion-title>{{ t("AddMeter.page-title") }}</ion-title>
+        <ion-title v-t="{ path: 'AddMeter.page-title' }" />
       </ion-toolbar>
     </ion-header>
 
@@ -107,29 +106,32 @@ export default {
       <form>
         <ion-list lines="full" class="ion-margin">
           <ion-item>
-            <ion-label position="stacked">Name</ion-label>
+            <ion-label position="stacked" v-t="'AddMeter.label-name'" />
             <ion-input required v-model="name"></ion-input>
           </ion-item>
           <ion-item>
-            <ion-label position="stacked">No</ion-label>
+            <ion-label position="stacked" v-t="'AddMeter.label-no'" />
             <ion-input v-model="no"></ion-input>
           </ion-item>
           <ion-item>
-            <ion-label position="stacked">Unit</ion-label>
+            <ion-label position="stacked" v-t="'AddMeter.label-unit'" />
             <ion-input v-model="unit"></ion-input>
           </ion-item>
           <ion-item>
-            <ion-label position="stacked">Start value</ion-label>
+            <ion-label position="stacked" v-t="'AddMeter.label-start-value'" />
             <ion-input type="number" v-model="startValue"></ion-input>
           </ion-item>
           <ion-item>
-            <ion-label position="stacked">Description</ion-label>
+            <ion-label position="stacked" v-t="'AddMeter.label-description'" />
             <ion-input required v-model="description"></ion-input>
           </ion-item>
           <section class="mt">
-            <ion-button :disabled="!ready" expand="block" @click="saveItem">
-              Save
-            </ion-button>
+            <ion-button
+              :disabled="!ready"
+              expand="block"
+              @click="saveItem"
+              v-t="'AddMeter.button-save'"
+            />
           </section>
         </ion-list>
       </form>

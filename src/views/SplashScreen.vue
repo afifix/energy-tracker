@@ -5,6 +5,7 @@ import { IonPage, IonRow, IonCol, IonSpinner, IonGrid } from "@ionic/vue";
 import { pause } from "../utils/helper";
 import { init } from "../db/utils";
 import db from "../db";
+import { useI18n } from "vue-i18n";
 
 const name = "splash-screen";
 const LOG = `[component|${name}]`;
@@ -22,11 +23,12 @@ export default {
   setup(_, context) {
     log.debug(LOG, "setup");
 
+    const { t } = useI18n();
     const running = ref(true);
     const message = ref("");
 
     onMounted(async () => {
-      message.value = "initialisation bd...";
+      message.value = t("SplashScreen.message-init-db");
       await init({ db });
       await pause(2000);
       running.value = false;

@@ -25,6 +25,7 @@ import {
 import { add as addIcon } from "ionicons/icons";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { Retrier } from "@jsier/retrier";
 
 import useSQLite from "../composables/useSQLite";
@@ -56,6 +57,7 @@ export default {
   setup() {
     log.debug(LOG, "setup");
 
+    useI18n();
     const { ready, query } = useSQLite();
     const loading = ref(false);
     const router = useRouter();
@@ -123,7 +125,7 @@ export default {
         <ion-buttons slot="start">
           <ion-menu-button menu="menu" color="dark" />
         </ion-buttons>
-        <ion-title>Meters</ion-title>
+        <ion-title v-t="'Meters.page-title'" />
       </ion-toolbar>
     </ion-header>
 
