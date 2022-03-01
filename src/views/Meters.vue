@@ -70,8 +70,6 @@ export default {
         limit: 5,
         firstAttemptDelay: 500,
         delay: 250,
-        keepRetryingIf: () => !ready.value,
-        stop,
       };
 
       const retrier = new Retrier(options);
@@ -88,27 +86,32 @@ export default {
     const load = async () => {
       if (!ready.value) return Promise.reject(new Error("fail to load data"));
 
-      const data = await query(repo.getAll());
-      items.value = data;
+      try {
+        const data = await query(repo.getAll());
+        items.value = data;
+      } catch (err) {
+        log.Error(err);
+      }
     };
 
     const refresh = () => {
       log.debug(LOG, "refresh");
     };
 
-    const toMeterPage = () => {
-      log.debug(LOG, "to meter page");
+    const toNewMeterPage = () => {
+      log.debug(LOG, "new meter");
       router.push("/meters/add");
     };
 
     const openMeter = (item) => {
-      log.debug(LOG, { item });
+      log.debug(LOG, "open meter", { item });
+      router.push(`/meters/${item.id}`);
     };
 
     return {
       ready,
       refresh,
-      toMeterPage,
+      toNewMeterPage,
       openMeter,
       addIcon,
       loading,
@@ -144,7 +147,11 @@ export default {
         </ion-item>
       </ion-list>
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button :disabled="!ready" color="primary" @click="toMeterPage">
+        <ion-fab-button
+          :disabled="!ready"
+          color="primary"
+          @click="toNewMeterPage"
+        >
           <ion-icon :icon="addIcon" />
         </ion-fab-button>
       </ion-fab>

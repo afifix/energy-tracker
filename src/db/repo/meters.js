@@ -10,6 +10,19 @@ SELECT id
 FROM meters;
 `;
 
+const statement_get_by_id = `
+SELECT id
+  , name
+  , no
+  , unit
+  , start_value startValue
+  , description
+  , user
+  , last_modified modified
+FROM meters
+WHERE id = ?;
+`;
+
 const statement_delete_by_id = `
 DELETE FROM meters WHERE id = ?;
 `;
@@ -22,6 +35,10 @@ VALUES (?, ?, ?, ?, ?, ?);
 export default {
   getAll: () => ({
     statement: statement_get_all,
+  }),
+  getById: ({ id }) => ({
+    statement: statement_get_by_id,
+    values: [id],
   }),
   add: ({ name, no, unit, startValue, description, user = "app" }) => ({
     statement: statement_insert,
