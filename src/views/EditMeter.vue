@@ -29,7 +29,7 @@ import { required, helpers } from "@vuelidate/validators";
 const name = "Meter";
 const LOG = `[component|${name}]`;
 const { withMessage } = helpers;
-const { getById } = repo;
+const { getById, update } = repo;
 
 export default {
   name,
@@ -60,7 +60,7 @@ export default {
     const { t } = useI18n();
     const store = useStore();
     const router = useRouter();
-    const { ready, querySingle } = useSQLite();
+    const { ready, querySingle, run } = useSQLite();
 
     const name = ref("");
     const no = ref("");
@@ -150,6 +150,21 @@ export default {
       if (!valid) {
         log.log(LOG, "invalid");
         return;
+      }
+
+      try {
+        await run(
+          update({
+            name: name.value,
+            no: no.value,
+            unit: unit.value,
+            startValue: startValue.value,
+            description: description.value,
+            id: parseInt(props.id),
+          })
+        );
+      } catch (ex) {
+        log.error(ex);
       }
       router.back();
     };

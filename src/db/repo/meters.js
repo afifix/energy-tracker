@@ -32,6 +32,16 @@ INSERT INTO meters (name, no, unit, start_value, description, user)
 VALUES (?, ?, ?, ?, ?, ?);
 `;
 
+const statement_update = `
+UPDATE meters SET
+name = ?,
+no = ?,
+unit = ?,
+start_value = ?,
+description = ?
+WHERE id = ?
+`;
+
 export default {
   getAll: () => ({
     statement: statement_get_all,
@@ -47,5 +57,9 @@ export default {
   deleteById: ({ id }) => ({
     statement: statement_delete_by_id,
     values: [id],
+  }),
+  update: ({ name, no, unit, startValue, description, id }) => ({
+    statement: statement_update,
+    values: [name, no, unit, startValue, description, id],
   }),
 };
