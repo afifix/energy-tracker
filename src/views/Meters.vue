@@ -146,6 +146,7 @@ export default {
     const openMeter = (item) => {
       log.debug(LOG, "open meter", { item });
       router.push(`/meters/${item.id}`);
+      shouldReloadData = true;
     };
 
     return {

@@ -14,21 +14,22 @@ import {
   IonLabel,
   IonInput,
   IonList,
-  onIonViewDidEnter,
 } from "@ionic/vue";
 
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-
 import repo from "../db/repo/meters";
-
-import useSQLite from "../composables/useSQLite";
 import { Retrier } from "@jsier/retrier";
+import useSQLite from "../composables/useSQLite";
+import useVuelidate from "@vuelidate/core";
+import { required, helpers } from "@vuelidate/validators";
 
 const name = "Meter";
 const LOG = `[component|${name}]`;
+const { withMessage } = helpers;
+const { getById } = repo;
 
 export default {
   name,
@@ -56,7 +57,7 @@ export default {
   setup(props) {
     log.debug(LOG, "setup");
 
-    useI18n();
+    const { t } = useI18n();
     const store = useStore();
     const router = useRouter();
     const { ready, querySingle } = useSQLite();
@@ -66,28 +67,29 @@ export default {
     const unit = ref("");
     const startValue = ref();
     const description = ref("");
+    const submitted = ref(false);
 
     const showLoading = () => store.dispatch("app/showLoading");
     const hideLoading = () => store.dispatch("app/hideLoading");
 
+    const retrierOptions = {
+      limit: 5,
+      firstAttemptDelay: 0,
+      delay: 250,
+      keepRetryingIf: (response, attempt) => {
+        log.debug(LOG, "keepRetryingIf", {
+          response,
+          attempt,
+        });
+        return !ready.value;
+      },
+    };
+    const retrier = new Retrier(retrierOptions);
+
     showLoading();
 
-    onIonViewDidEnter(async () => {
-      log.debug(LOG, "view did enter");
-      const options = {
-        limit: 5,
-        firstAttemptDelay: 0,
-        delay: 250,
-        keepRetryingIf: (response, attempt) => {
-          log.debug(LOG, "keepRetryingIf", {
-            response,
-            attempt,
-          });
-          return !ready.value;
-        },
-      };
-
-      const retrier = new Retrier(options);
+    onMounted(async () => {
+      log.debug(LOG, "view mounted");
       retrier
         .resolve((attempt) => load(attempt))
         .then(
@@ -98,9 +100,20 @@ export default {
           async () => {
             log.debug(LOG, "load data failed");
             await hideLoading();
+            router.back();
           }
         );
     });
+
+    const rules = {
+      name: {
+        required: withMessage(t("AddMeter.msg-title-required"), required),
+      },
+      unit: {
+        required: withMessage(t("AddMeter.msg-unit-required"), required),
+      },
+    };
+    const v$ = useVuelidate(rules, { name, unit }, { $autoDirty: true });
 
     const load = async (attempt) => {
       log.debug(LOG, `load meter`, { attempt, id: props.id });
@@ -110,9 +123,7 @@ export default {
       }
 
       try {
-        const data = await querySingle(
-          repo.getById({ id: parseInt(props.id) })
-        );
+        const data = await querySingle(getById({ id: parseInt(props.id) }));
 
         name.value = data.name;
         no.value = data.no;
@@ -125,8 +136,21 @@ export default {
       }
     };
 
-    const save = () => {
-      log.debug(LOG, "saving");
+    const save = async () => {
+      const $v = v$.value;
+      const meter = {
+        name: name.value,
+        unit: unit.value,
+      };
+
+      submitted.value = true;
+      $v.$touch();
+      var valid = await $v.$validate();
+      log.log(LOG, "saving", meter, $v);
+      if (!valid) {
+        log.log(LOG, "invalid");
+        return;
+      }
       router.back();
     };
 
@@ -138,6 +162,8 @@ export default {
       startValue,
       description,
       save,
+      submitted,
+      v$,
     };
   },
 };
@@ -158,24 +184,32 @@ export default {
       <form>
         <ion-list lines="full" class="ion-margin">
           <ion-item>
-            <ion-label position="stacked" v-t="'AddMeter.label-name'" />
-            <ion-input readonly required v-model="name"></ion-input>
+            <ion-label
+              position="stacked"
+              v-t="'AddMeter.label-name'"
+              :color="submitted && v$.name.$error ? 'danger' : 'black'"
+            />
+            <ion-input required v-model="name"></ion-input>
           </ion-item>
           <ion-item>
             <ion-label position="stacked" v-t="'AddMeter.label-no'" />
-            <ion-input readonly v-model="no"></ion-input>
+            <ion-input v-model="no"></ion-input>
           </ion-item>
           <ion-item>
-            <ion-label position="stacked" v-t="'AddMeter.label-unit'" />
-            <ion-input readonly v-model="unit"></ion-input>
+            <ion-label
+              position="stacked"
+              v-t="'AddMeter.label-unit'"
+              :color="submitted && v$.unit.$error ? 'danger' : 'black'"
+            />
+            <ion-input v-model="unit"></ion-input>
           </ion-item>
           <ion-item>
             <ion-label position="stacked" v-t="'AddMeter.label-start-value'" />
-            <ion-input readonly type="number" v-model="startValue"></ion-input>
+            <ion-input type="number" v-model="startValue"></ion-input>
           </ion-item>
           <ion-item>
             <ion-label position="stacked" v-t="'AddMeter.label-description'" />
-            <ion-input required v-model="description"></ion-input>
+            <ion-input v-model="description"></ion-input>
           </ion-item>
           <section class="mt">
             <ion-button

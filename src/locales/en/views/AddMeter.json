@@ -1,9 +1,11 @@
 {
   "page-title": "Meter",
-  "label-name": "Name",
+  "label-name": "Title",
   "label-no": "No",
   "label-unit": "Unit",
   "label-description": "Description",
   "label-start-value": "Start value",
-  "button-save": "Save"
+  "button-save": "Save",
+  "msg-title-required": "Title required",
+  "msg-unit-required": "Unit required"
 }
