@@ -72,39 +72,45 @@ export default {
         limit: 5,
         firstAttemptDelay: 500,
         delay: 250,
-        keepRetryingIf: !ready.value,
+        keepRetryingIf: (response, attempt) => {
+          log.debug(LOG, "keepRetryingIf", {
+            response,
+            attempt,
+          });
+          return !ready.value;
+        },
       };
 
       const retrier = new Retrier(options);
-      retrier.resolve(load).then(
-        () => log.debug(LOG, "data loaded"),
-        () => log.debug(LOG, "load data failed")
-      );
+      retrier
+        .resolve((attempt) => load(attempt))
+        .then(
+          () => log.debug(LOG, "data loaded"),
+          () => log.debug(LOG, "load data failed")
+        );
     });
 
-    const load = async () => {
+    const load = async (attempt) => {
+      log.debug(LOG, `load meter`, { attempt, id: props.id });
       if (!ready.value) {
         log.debug(LOG, "db not ready");
-        return Promise.reject(new Error("fail to load data"));
+        throw new Error("fail to load data");
       }
 
-      log.debug(LOG, "query db");
-      const { name, no, unit, startValue, description } = await querySingle(
-        repo.getById({ id: parseInt(props.id) })
-      );
-      log.debug(LOG, {
-        name,
-        no,
-        unit,
-        startValue,
-        description,
-      });
+      try {
+        const data = await querySingle(
+          repo.getById({ id: parseInt(props.id) })
+        );
 
-      name.value = name;
-      no.value = no;
-      unit.value = unit;
-      startValue.value = startValue;
-      description.value = description;
+        name.value = data.name;
+        no.value = data.no;
+        unit.value = data.unit;
+        startValue.value = data.startValue;
+        description.value = data.description;
+      } catch (err) {
+        log.error(err.message);
+        throw err;
+      }
     };
 
     const save = () => {

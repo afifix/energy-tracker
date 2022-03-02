@@ -70,27 +70,38 @@ export default {
         limit: 5,
         firstAttemptDelay: 500,
         delay: 250,
+        keepRetryingIf: (response, attempt) => {
+          log.debug(LOG, "keepRetryingIf", {
+            response,
+            attempt,
+          });
+          return !ready.value;
+        },
       };
 
       const retrier = new Retrier(options);
-      retrier.resolve(load).then(
-        () => log.debug(LOG, "data loaded"),
-        () => log.debug(LOG, "load data failed")
-      );
+      retrier
+        .resolve((attempt) => load(attempt))
+        .then(
+          () => log.debug(LOG, "data loaded"),
+          () => log.debug(LOG, "load data failed")
+        );
     });
 
     onIonViewWillLeave(() => {
       log.debug(LOG, "view will leave");
     });
 
-    const load = async () => {
-      if (!ready.value) return Promise.reject(new Error("fail to load data"));
+    const load = async (attempt) => {
+      log.debug(LOG, "load meters", { attempt });
+      if (!ready.value) throw new Error("fail to load data");
 
       try {
         const data = await query(repo.getAll());
         items.value = data;
       } catch (err) {
-        log.Error(err);
+        log.error(err.message);
+        throw err;
       }
     };
 
