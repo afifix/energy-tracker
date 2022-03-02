@@ -14,7 +14,7 @@ const routes = [
   {
     path: "/meters/:id",
     name: "meter-consult",
-    component: () => import("../views/ShowMeter.vue"),
+    component: () => import("../views/EditMeter.vue"),
     props: true,
   },
   {
