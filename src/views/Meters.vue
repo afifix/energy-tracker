@@ -19,10 +19,11 @@ import {
   IonItem,
   IonLabel,
   onIonViewDidEnter,
+  onIonViewWillEnter,
 } from "@ionic/vue";
 
 import { add as addIcon } from "ionicons/icons";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
@@ -60,33 +61,53 @@ export default {
     useI18n();
     const store = useStore();
     const { ready, query } = useSQLite();
+
+    let shouldReloadData = false;
+
     const loading = ref(false);
     const router = useRouter();
     const items = ref([]);
+
+    const retrierOptions = {
+      limit: 5,
+      firstAttemptDelay: 0,
+      delay: 250,
+      keepRetryingIf: (response, attempt) => {
+        log.debug(LOG, "keepRetryingIf", {
+          response,
+          attempt,
+        });
+        return !ready.value;
+      },
+    };
+    const retrier = new Retrier(retrierOptions);
 
     const showLoading = () => store.dispatch("app/showLoading");
     const hideLoading = () => store.dispatch("app/hideLoading");
 
     showLoading();
 
-    onIonViewDidEnter(async () => {
-      log.debug(LOG, "view did enter");
-      const options = {
-        limit: 5,
-        firstAttemptDelay: 0,
-        delay: 250,
-        keepRetryingIf: (response, attempt) => {
-          log.debug(LOG, "keepRetryingIf", {
-            response,
-            attempt,
-          });
-          return !ready.value;
-        },
-      };
+    onMounted(async () => {
+      log.debug(LOG, "view mounted");
+      tryLoadData();
+    });
 
-      const retrier = new Retrier(options);
+    onIonViewWillEnter(async () => {
+      if (!shouldReloadData) return;
+      log.debug(LOG, "view will enter");
+      await showLoading();
+    });
+
+    onIonViewDidEnter(async () => {
+      if (!shouldReloadData) return;
+      log.debug(LOG, "view did enter");
+      tryLoadData();
+      shouldReloadData = false;
+    });
+
+    const tryLoadData = () => {
       retrier
-        .resolve((attempt) => load(attempt))
+        .resolve((attempt) => loadData(attempt))
         .then(
           async () => {
             log.debug(LOG, "data loaded");
@@ -97,9 +118,9 @@ export default {
             await hideLoading();
           }
         );
-    });
+    };
 
-    const load = async (attempt) => {
+    const loadData = async (attempt) => {
       log.debug(LOG, "load meters", { attempt });
       if (!ready.value) throw new Error("fail to load data");
 
@@ -119,6 +140,7 @@ export default {
     const toNewMeterPage = () => {
       log.debug(LOG, "new meter");
       router.push("/meters/add");
+      shouldReloadData = true;
     };
 
     const openMeter = (item) => {
