@@ -18,6 +18,7 @@ import {
 } from "@ionic/vue";
 
 import { useRouter } from "vue-router";
+import { useStore } from "vuex";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -56,6 +57,7 @@ export default {
     log.debug(LOG, "setup");
 
     useI18n();
+    const store = useStore();
     const router = useRouter();
     const { ready, querySingle } = useSQLite();
 
@@ -65,12 +67,16 @@ export default {
     const startValue = ref();
     const description = ref("");
 
+    const showLoading = () => store.dispatch("app/showLoading");
+    const hideLoading = () => store.dispatch("app/hideLoading");
+
+    showLoading();
+
     onIonViewDidEnter(async () => {
       log.debug(LOG, "view did enter");
-
       const options = {
         limit: 5,
-        firstAttemptDelay: 500,
+        firstAttemptDelay: 0,
         delay: 250,
         keepRetryingIf: (response, attempt) => {
           log.debug(LOG, "keepRetryingIf", {
@@ -85,8 +91,14 @@ export default {
       retrier
         .resolve((attempt) => load(attempt))
         .then(
-          () => log.debug(LOG, "data loaded"),
-          () => log.debug(LOG, "load data failed")
+          async () => {
+            log.debug(LOG, "data loaded");
+            await hideLoading();
+          },
+          async () => {
+            log.debug(LOG, "load data failed");
+            await hideLoading();
+          }
         );
     });
 

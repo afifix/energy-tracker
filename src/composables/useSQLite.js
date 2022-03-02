@@ -69,6 +69,7 @@ export default ({ dbName = "db", component = "???" } = {}) => {
       throw err;
     }
   };
+
   const execute = async ({ statement, transaction = true }) => {
     log.log("[SQLite] executing statement", dbName, statement);
     try {
@@ -221,7 +222,7 @@ export default ({ dbName = "db", component = "???" } = {}) => {
 
   const options = {
     limit: 3,
-    firstAttemptDelay: 500,
+    firstAttemptDelay: 0,
     delay: 250,
     keepRetryingIf: () => !ready.value,
     stop,

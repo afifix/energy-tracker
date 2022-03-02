@@ -19,11 +19,11 @@ import {
   IonItem,
   IonLabel,
   onIonViewDidEnter,
-  onIonViewWillLeave,
 } from "@ionic/vue";
 
 import { add as addIcon } from "ionicons/icons";
 import { ref } from "vue";
+import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { Retrier } from "@jsier/retrier";
@@ -58,17 +58,22 @@ export default {
     log.debug(LOG, "setup");
 
     useI18n();
+    const store = useStore();
     const { ready, query } = useSQLite();
     const loading = ref(false);
     const router = useRouter();
     const items = ref([]);
 
+    const showLoading = () => store.dispatch("app/showLoading");
+    const hideLoading = () => store.dispatch("app/hideLoading");
+
+    showLoading();
+
     onIonViewDidEnter(async () => {
       log.debug(LOG, "view did enter");
-
       const options = {
         limit: 5,
-        firstAttemptDelay: 500,
+        firstAttemptDelay: 0,
         delay: 250,
         keepRetryingIf: (response, attempt) => {
           log.debug(LOG, "keepRetryingIf", {
@@ -83,13 +88,15 @@ export default {
       retrier
         .resolve((attempt) => load(attempt))
         .then(
-          () => log.debug(LOG, "data loaded"),
-          () => log.debug(LOG, "load data failed")
+          async () => {
+            log.debug(LOG, "data loaded");
+            await hideLoading();
+          },
+          async () => {
+            log.debug(LOG, "load data failed");
+            await hideLoading();
+          }
         );
-    });
-
-    onIonViewWillLeave(() => {
-      log.debug(LOG, "view will leave");
     });
 
     const load = async (attempt) => {
