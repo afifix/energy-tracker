@@ -24,13 +24,14 @@ import {
 
 import { add as addIcon } from "ionicons/icons";
 import { ref, onMounted } from "vue";
-import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { Retrier } from "@jsier/retrier";
 
 import useSQLite from "../composables/useSQLite";
 import repo from "../db/repo/meters";
+
+import { useAppStore } from "../stores/app";
 
 const name = "Meters";
 const LOG = `[component|${name}]`;
@@ -59,7 +60,7 @@ export default {
     log.debug(LOG, "setup");
 
     useI18n();
-    const store = useStore();
+    const store = useAppStore();
     const { ready, query } = useSQLite();
 
     let shouldReloadData = false;
@@ -82,8 +83,7 @@ export default {
     };
     const retrier = new Retrier(retrierOptions);
 
-    const showLoading = () => store.dispatch("app/showLoading");
-    const hideLoading = () => store.dispatch("app/hideLoading");
+    const { showLoading, hideLoading } = store;
 
     showLoading();
 

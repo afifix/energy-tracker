@@ -1,7 +1,7 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
-import store from "./store";
+import { createPinia } from "pinia";
 
 import { IonicVue } from "@ionic/vue";
 
@@ -50,10 +50,8 @@ router.isReady().then(() => {
         messages,
       })
     )
-    .use(store)
+    .use(createPinia())
     .mount("#app");
-
-  log.debug(messages);
 });
 
 // # move to javascript

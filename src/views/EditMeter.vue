@@ -17,7 +17,6 @@ import {
 } from "@ionic/vue";
 
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
 import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import repo from "../db/repo/meters";
@@ -25,6 +24,8 @@ import { Retrier } from "@jsier/retrier";
 import useSQLite from "../composables/useSQLite";
 import useVuelidate from "@vuelidate/core";
 import { required, helpers } from "@vuelidate/validators";
+
+import { useAppStore } from "../stores/app";
 
 const name = "Meter";
 const LOG = `[component|${name}]`;
@@ -57,8 +58,8 @@ export default {
   setup(props) {
     log.debug(LOG, "setup");
 
+    const store = useAppStore();
     const { t } = useI18n();
-    const store = useStore();
     const router = useRouter();
     const { ready, querySingle, run } = useSQLite();
 
@@ -69,8 +70,7 @@ export default {
     const description = ref("");
     const submitted = ref(false);
 
-    const showLoading = () => store.dispatch("app/showLoading");
-    const hideLoading = () => store.dispatch("app/hideLoading");
+    const { showLoading, hideLoading } = store;
 
     const retrierOptions = {
       limit: 5,
@@ -153,6 +153,7 @@ export default {
       }
 
       try {
+        showLoading();
         await run(
           update({
             name: name.value,
@@ -163,10 +164,12 @@ export default {
             id: parseInt(props.id),
           })
         );
+        router.back();
       } catch (ex) {
         log.error(ex);
+      } finally {
+        hideLoading();
       }
-      router.back();
     };
 
     return {

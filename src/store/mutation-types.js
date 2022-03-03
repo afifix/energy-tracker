@@ -1,3 +1,0 @@
-// app
-export const SET_APP_MULTISELECT = "SET_APP_MULTISELECT";
-export const SET_APP_LOADING = "SET_APP_LOADING";

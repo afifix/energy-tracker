@@ -1,8 +1,9 @@
 <script>
 import log from "loglevel";
-import { ref, computed } from "vue";
-import { useStore } from "vuex";
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { storeToRefs } from "pinia";
+import { useAppStore } from "./stores/app";
 
 import { IonApp, IonRouterOutlet, IonSplitPane, IonLoading } from "@ionic/vue";
 import Menu from "./components/Menu.vue";
@@ -25,11 +26,9 @@ export default {
     log.debug(LOG, "setup");
 
     const { t } = useI18n();
-    const store = useStore();
+    const { loading } = storeToRefs(useAppStore());
 
     const showSplashScreen = ref(true);
-
-    const loading = computed(() => store.state.app.loading);
 
     const onSplashScreenFadeout = () => {
       showSplashScreen.value = false;
