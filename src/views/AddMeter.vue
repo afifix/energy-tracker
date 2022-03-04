@@ -21,6 +21,9 @@ import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { storeToRefs } from "pinia";
 
+import useVuelidate from "@vuelidate/core";
+import { required, helpers } from "@vuelidate/validators";
+
 import { useAppStore } from "../stores/app";
 import repo from "../db/repo/meters";
 
@@ -28,6 +31,7 @@ import useSQLite from "../composables/useSQLite";
 
 const name = "Meter";
 const LOG = `[component|${name}]`;
+const { withMessage } = helpers;
 
 export default {
   name,
@@ -49,7 +53,7 @@ export default {
   setup() {
     log.debug(LOG, "setup");
 
-    useI18n();
+    const { t } = useI18n();
     const store = useAppStore();
     const router = useRouter();
     const { ready, run } = useSQLite();
@@ -60,8 +64,34 @@ export default {
     const unit = ref("");
     const startValue = ref();
     const description = ref("");
+    const submitted = ref(false);
+
+    const rules = {
+      name: {
+        required: withMessage(t("AddMeter.msg-title-required"), required),
+      },
+      unit: {
+        required: withMessage(t("AddMeter.msg-unit-required"), required),
+      },
+    };
+    const v$ = useVuelidate(rules, { name, unit }, { $autoDirty: true });
 
     const saveItem = async () => {
+      const $v = v$.value;
+      const meter = {
+        name: name.value,
+        unit: unit.value,
+      };
+
+      submitted.value = true;
+      $v.$touch();
+      var valid = await $v.$validate();
+      log.log(LOG, "saving", meter, $v);
+      if (!valid) {
+        log.log(LOG, "invalid");
+        return;
+      }
+
       const { add } = repo;
       try {
         await run(
@@ -84,6 +114,7 @@ export default {
     };
 
     return {
+      v$,
       ready,
       name,
       no,
@@ -91,6 +122,7 @@ export default {
       startValue,
       description,
       saveItem,
+      submitted,
     };
   },
 };
@@ -111,7 +143,11 @@ export default {
       <form>
         <ion-list lines="full" class="ion-margin">
           <ion-item>
-            <ion-label position="stacked" v-t="'AddMeter.label-name'" />
+            <ion-label
+              position="stacked"
+              v-t="'AddMeter.label-name'"
+              :color="submitted && v$.name.$error ? 'danger' : 'black'"
+            />
             <ion-input required v-model="name"></ion-input>
           </ion-item>
           <ion-item>
@@ -119,7 +155,11 @@ export default {
             <ion-input v-model="no"></ion-input>
           </ion-item>
           <ion-item>
-            <ion-label position="stacked" v-t="'AddMeter.label-unit'" />
+            <ion-label
+              position="stacked"
+              v-t="'AddMeter.label-unit'"
+              :color="submitted && v$.unit.$error ? 'danger' : 'black'"
+            />
             <ion-input v-model="unit"></ion-input>
           </ion-item>
           <ion-item>
