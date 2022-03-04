@@ -9,6 +9,7 @@ const LOG = `[store.${id}]`;
 export const useAppStore = defineStore(id, {
   state() {
     return {
+      shouldReloadData: false,
       multiselect: false,
       loading: false,
       version,

@@ -24,6 +24,7 @@ import { Retrier } from "@jsier/retrier";
 import useSQLite from "../composables/useSQLite";
 import useVuelidate from "@vuelidate/core";
 import { required, helpers } from "@vuelidate/validators";
+import { storeToRefs } from "pinia";
 
 import { useAppStore } from "../stores/app";
 
@@ -62,6 +63,7 @@ export default {
     const { t } = useI18n();
     const router = useRouter();
     const { ready, querySingle, run } = useSQLite();
+    const { shouldReloadData } = storeToRefs(store);
 
     const name = ref("");
     const no = ref("");
@@ -164,6 +166,7 @@ export default {
             id: parseInt(props.id),
           })
         );
+        shouldReloadData.value = true;
         router.back();
       } catch (ex) {
         log.error(ex);

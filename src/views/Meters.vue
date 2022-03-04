@@ -32,6 +32,7 @@ import useSQLite from "../composables/useSQLite";
 import repo from "../db/repo/meters";
 
 import { useAppStore } from "../stores/app";
+import { storeToRefs } from "pinia";
 
 const name = "Meters";
 const LOG = `[component|${name}]`;
@@ -63,7 +64,7 @@ export default {
     const store = useAppStore();
     const { ready, query } = useSQLite();
 
-    let shouldReloadData = false;
+    const { shouldReloadData } = storeToRefs(store);
 
     const loading = ref(false);
     const router = useRouter();
@@ -93,19 +94,19 @@ export default {
     });
 
     onIonViewWillEnter(async () => {
-      if (!shouldReloadData) return;
+      if (!shouldReloadData.value) return;
       log.debug(LOG, "view will enter");
       await showLoading();
     });
 
     onIonViewDidEnter(async () => {
-      if (!shouldReloadData) return;
+      if (!shouldReloadData.value) return;
       log.debug(LOG, "view did enter");
       tryLoadData();
-      shouldReloadData = false;
     });
 
     const tryLoadData = () => {
+      shouldReloadData.value = false;
       retrier
         .resolve((attempt) => loadData(attempt))
         .then(
@@ -140,13 +141,11 @@ export default {
     const toNewMeterPage = () => {
       log.debug(LOG, "new meter");
       router.push("/meters/add");
-      shouldReloadData = true;
     };
 
     const openMeter = (item) => {
       log.debug(LOG, "open meter", { item });
       router.push(`/meters/${item.id}`);
-      shouldReloadData = true;
     };
 
     return {

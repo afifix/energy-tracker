@@ -19,7 +19,9 @@ import {
 import { useRouter } from "vue-router";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { storeToRefs } from "pinia";
 
+import { useAppStore } from "../stores/app";
 import repo from "../db/repo/meters";
 
 import useSQLite from "../composables/useSQLite";
@@ -48,8 +50,10 @@ export default {
     log.debug(LOG, "setup");
 
     useI18n();
+    const store = useAppStore();
     const router = useRouter();
     const { ready, run } = useSQLite();
+    const { shouldReloadData } = storeToRefs(store);
 
     const name = ref("");
     const no = ref("");
@@ -70,6 +74,7 @@ export default {
             user: "app",
           })
         );
+        shouldReloadData.value = true;
         router.replace("/meters");
       } catch (ex) {
         log.error(ex);
