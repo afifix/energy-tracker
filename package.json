@@ -1,6 +1,7 @@
 {
   "name": "energy-tracker",
-  "version": "0.0.1",
+  "displayName": "Energy Tracker",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",

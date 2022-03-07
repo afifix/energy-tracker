@@ -1,7 +1,6 @@
 import log from "loglevel";
 
 import { defineStore } from "pinia";
-import { version, displayName } from "../../package.json";
 
 const id = "app";
 const LOG = `[store.${id}]`;
@@ -12,8 +11,8 @@ export const useAppStore = defineStore(id, {
       shouldReloadData: false,
       multiselect: false,
       loading: false,
-      version,
-      name: displayName,
+      version: "0.1.0",
+      name: "Energy Tracker",
     };
   },
   actions: {
