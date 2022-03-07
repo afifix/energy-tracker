@@ -11,8 +11,8 @@ export const useAppStore = defineStore(id, {
       shouldReloadData: false,
       multiselect: false,
       loading: false,
-      version: "0.1.0",
-      name: "Energy Tracker",
+      version: process.env.VUE_APP_VERSION,
+      name: process.env.VUE_APP_NAME,
     };
   },
   actions: {

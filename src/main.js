@@ -37,6 +37,10 @@ if (process.env.NODE_ENV === "development") {
 }
 log.debug(LOG, "log", { level: log.getLevel() });
 
+log.debug(LOG, {
+  name: process.env.VUE_APP_NAME,
+  version: process.env.VUE_APP_VERSION,
+});
 log.debug(LOG, "creating app...");
 const app = createApp(App).use(IonicVue).use(router);
 
