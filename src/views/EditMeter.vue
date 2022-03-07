@@ -17,7 +17,7 @@ import {
 } from "@ionic/vue";
 
 import { useRouter } from "vue-router";
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import repo from "../db/repo/meters";
 import { Retrier } from "@jsier/retrier";
@@ -71,6 +71,8 @@ export default {
     const startValue = ref();
     const description = ref("");
     const submitted = ref(false);
+    const loadingData = ref(true);
+    let data = null;
 
     const { showLoading, hideLoading } = store;
 
@@ -96,6 +98,7 @@ export default {
         .resolve((attempt) => load(attempt))
         .then(
           async () => {
+            loadingData.value = false;
             log.debug(LOG, "data loaded");
             await hideLoading();
           },
@@ -125,7 +128,7 @@ export default {
       }
 
       try {
-        const data = await querySingle(getById({ id: parseInt(props.id) }));
+        data = await querySingle(getById({ id: parseInt(props.id) }));
 
         name.value = data.name;
         no.value = data.no;
@@ -175,6 +178,18 @@ export default {
       }
     };
 
+    const dataChanged = computed(() => {
+      if (loadingData.value) return false;
+
+      return !(
+        name.value === data.name &&
+        no.value === data.no &&
+        unit.value === data.unit &&
+        startValue.value === data.startValue &&
+        description.value === data.description
+      );
+    });
+
     return {
       ready,
       name,
@@ -184,6 +199,7 @@ export default {
       description,
       save,
       submitted,
+      dataChanged,
       v$,
     };
   },
@@ -234,7 +250,7 @@ export default {
           </ion-item>
           <section class="mt">
             <ion-button
-              :disabled="!ready"
+              :disabled="!dataChanged"
               expand="block"
               @click="save"
               v-t="'AddMeter.button-save'"
